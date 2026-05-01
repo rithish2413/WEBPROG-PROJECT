@@ -1,7 +1,13 @@
+console.log("THIS IS MY CURRENT SERVER FILE");
 const express = require("express");
 const mongoose = require("mongoose");
 
 const app = express();
+
+app.use((req, res, next) => {
+  console.log("REQ:", req.method, req.url);
+  next();
+});
 app.use(express.json());
 const path = require('path');
 
@@ -9,6 +15,7 @@ const path = require('path');
 const frontendPath = path.join(__dirname, '..', 'FRONTEND');
 
 // 2. Tell Express to serve those files
+
 app.use(express.static(frontendPath, { index: false }));
 
 mongoose.connect("mongodb://127.0.0.1:27017/guesthouse")
@@ -19,7 +26,7 @@ const roomSchema = mongoose.Schema({
     roomNumber:String,
     status:Number//0:available 1:booked 2:occupied
 });
-const room = mongoose.model('room',roomSchema);
+const room = mongoose.model('room',roomSchema); 
 const guestSchema = mongoose.Schema({
     bookingId:{type:String, required: true, unique: true},
     name:String,
@@ -190,6 +197,16 @@ app.put("/confirmCancel/:id", async (req, res) => {
     }
 });
 
+app.get("/allGuests", async (req, res) => {
+  console.log("ALL GUESTS ROUTE HIT");
+  try {
+    const guests = await guest.find();
+    res.json(guests);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 //for autocancellation
 const autoCancelNoShows = async () => {
@@ -222,5 +239,7 @@ setInterval(autoCancelNoShows, 1000 * 60 * 60);
 // Run once immediately when server starts to clean up 
 autoCancelNoShows();
 
-const PORT = 3000;
+
+
+const PORT = 4000;
 app.listen(PORT, () => console.log(`Server flying on http://localhost:${PORT}`));

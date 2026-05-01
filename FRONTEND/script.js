@@ -129,3 +129,57 @@ async function cancelBooking() {
     alert(data.message);
   }
 }
+
+async function showStatus() {
+  try {
+    const res = await fetch("/allGuests");
+    const data = await res.json();
+
+    // Remove old table if exists
+    const existing = document.getElementById("statusTable");
+    if (existing) existing.remove();
+
+    const div = document.createElement("div");
+    div.id = "statusTable";
+    div.className = "container";
+
+    let html = `<h3>Guest Status</h3>
+    <table border="1" style="width:100%; color:white;">
+      <tr>
+        <th>Name</th>
+        <th>Booking ID</th>
+        <th>Status</th>
+        <th>Details</th>
+      </tr>`;
+
+    data.forEach(g => {
+      let details = "";
+
+      if (g.status === "Confirmed") {
+        details = "Not Checked In";
+      } else if (g.status === "CheckIn") {
+        details = "Checked in at " + new Date(g.checkInTime).toLocaleString();
+      } else if (g.status === "CheckOut") {
+        details = "Stayed " + g.duration + " day(s)";
+      } else if (g.status === "Cancelled") {
+        details = "Cancelled";
+      }
+
+      html += `
+        <tr>
+          <td>${g.name}</td>
+          <td>${g.bookingId}</td>
+          <td>${g.status}</td>
+          <td>${details}</td>
+        </tr>`;
+    });
+
+    html += `</table>`;
+
+    div.innerHTML = html;
+    document.body.appendChild(div);
+
+  } catch (err) {
+    alert("Error loading status");
+  }
+}
