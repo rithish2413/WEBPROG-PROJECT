@@ -28,6 +28,7 @@ const guestSchema = mongoose.Schema({
     gmail:String,
     status:{type:String, default:"Confirmed"},
     roomNumber:String,
+    expectedArrivalDate: Date,
     checkInTime:Date,
     checkOutTime:Date,
     duration:Number
@@ -69,15 +70,17 @@ app.put("/confirmCheckIn/:id", async (req, res) => {
     if (person && person.status === "Confirmed") {
       // person.status = "CheckIn";
       // person.checkInTime = new Date(); 
+      const now = new Date();
       await guest.updateOne(
         { bookingId: bookingId },
-        { $set: { status: 'CheckIn' , checkInTime: new Date()} }
+        { $set: { status: 'CheckIn' , checkInTime: now} }
       );
       await room.updateOne(
         { roomNumber: person.roomNumber },
         { $set: { status: 2} }
       );
-      res.json({ message: "Check-in Successful"});
+      const localTime = now.toLocaleString();
+      res.json({ message: "Check-in Successful. Check in Time:"+ localTime});
     } else {
       res.status(400).json({ message: "Cannot check in. Current status: " + person.status });
     }
@@ -131,7 +134,7 @@ app.put("/confirmCheckOut/:id", async (req, res) => {
         { roomNumber: person.roomNumber },
         { $set: { status: 0} }
       );
-        res.json({ message: "Check-out Successful", duration: person.duration });
+        res.json({ message: "Check-out Successful and the Duration is " + duration + "day stay" });
       } else {
       res.status(400).json({ message: "Cannot check in. Current status: " + person.status });
     }
@@ -186,6 +189,38 @@ app.put("/confirmCancel/:id", async (req, res) => {
       res.status(500).json({ message: err.message });
     }
 });
+
+
+//for autocancellation
+const autoCancelNoShows = async () => {
+    try {
+        const now = new Date();
+        // 1. Find all guests who are late (Arrival Date is in the past) and are still marked as "Confirmed"
+        const expiredGuests = await guest.find({
+            status: "Confirmed",
+            expectedArrivalDate: { $lt: now } 
+        });
+        if (expiredGuests.length > 0) {
+            for (let person of expiredGuests) {
+                // Update Guest Status
+                person.status = "Cancelled";
+                await person.save();
+                // Update Room Status (Make it 0: Available again)
+                await room.updateOne(
+                    { roomNumber: person.roomNumber },
+                    { $set: { status: 0 } }
+                );
+                console.log(`[Auto-Cancel] Guest ${person.name} (Room ${person.roomNumber}) cancelled.`);
+            }
+        }
+    } catch (err) {
+        console.error("Auto-cancel error:", err);
+    }
+};
+// Run the check every 1 hour
+setInterval(autoCancelNoShows, 1000 * 60 * 60);
+// Run once immediately when server starts to clean up 
+autoCancelNoShows();
 
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server flying on http://localhost:${PORT}`));
