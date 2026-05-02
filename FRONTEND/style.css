@@ -1,9 +1,6 @@
-
-
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-
     background: url("LNMIIT-VIEW.jpg") no-repeat center center/cover;
     height: 100vh;
     gap: 40px;
@@ -12,7 +9,6 @@ body {
     align-items: center;
 }
 
-
 body::before {
     content: "";
     position: absolute;
@@ -20,7 +16,6 @@ body::before {
     background: rgba(0,0,0,0.6);
     z-index: 0;
 }
-
 
 .container {
     position: relative;
@@ -46,7 +41,6 @@ p{
     width: 150px;   /* bigger */
     margin-bottom: 10px;
 }
-
 
 h1 {
     color: #FFD700;
