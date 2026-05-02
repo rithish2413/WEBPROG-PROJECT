@@ -31,6 +31,7 @@ async function createGuestDetailsBlock(data, stage) {
     <p><strong>Name:</strong> ${data.name}</p>
     <p><strong>Booking ID:</strong> ${data.bookingId}</p>
     <p><strong>Room:</strong> ${data.roomNumber}</p>
+    <p><strong>Phone Number:</strong> ${data.phoneNumber}</p>
     <p><strong>Current Status:</strong> ${data.status}</p>
     <button id="confirmButton">Confirm Action</button>`;
   document.body.appendChild(div);
@@ -156,7 +157,7 @@ async function showStatus() {
       let details = "";
 
       if (g.status === "Confirmed") {
-        details = "Not Checked In";
+        details = "Expected Arrival at" + new Date(g.expectedArrivalDate).toLocaleString();
       } else if (g.status === "CheckIn") {
         details = "Checked in at " + new Date(g.checkInTime).toLocaleString();
       } else if (g.status === "CheckOut") {
