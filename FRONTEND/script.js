@@ -46,15 +46,34 @@ async function createGuestDetailsBlock(data, stage) {
     const result = await resp.json();
     
     if (resp.ok) {
-      alert(result.message);
-      location.reload(); // Refresh to clear the screen
-    } else {
+  alert(result.message);
+
+    const details = document.getElementById("guestDetails");
+    if (details) details.remove();
+
+    const cont = document.getElementsByClassName("container");
+    cont[0].style.display = "block";
+
+   showStatus();
+   } else {
       alert("Error: " + result.message);
     }
   };
 }
 
+function goToPage(page) {
+  hideStatusTable();
+  window.location.href = page;
+}
+
+function hideStatusTable() {
+  const tables = document.querySelectorAll(".status-container");
+
+  tables.forEach(t => t.remove());
+}
+
 async function checkIn() {
+  hideStatusTable();
   const id = document.getElementById("bookingId").value.trim();
 
   if (!id) {
@@ -83,6 +102,7 @@ async function checkIn() {
 }
 
 async function checkOut() {
+  hideStatusTable();
   const id = document.getElementById("bookingId").value.trim();
 
   if (!id) {
@@ -108,6 +128,7 @@ async function checkOut() {
 }
 
 async function cancelBooking() {
+  hideStatusTable();
   const id = document.getElementById("bookingId").value.trim();
 
   if (!id) {
@@ -142,9 +163,23 @@ async function showStatus() {
 
     const div = document.createElement("div");
     div.id = "statusTable";
-    div.className = "container";
+    div.className = "container status-container";
+    div.style.width = "575px";
+    let html = `
+    <h3>Guest Status</h3>
+    <div style="
+     position:absolute;
+     top:0px;
+     right:8px;
+     font-size:32px;
+     color:white;
+     cursor:pointer;
+     z-index:1000;
+     "
+     onclick="hideStatusTable()">
+    ×
+  </div>    
 
-    let html = `<h3>Guest Status</h3>
     <table border="1" style="width:100%; color:white;">
       <tr>
         <th>Name</th>
